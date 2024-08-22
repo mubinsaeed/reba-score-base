@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import yaml
 
 try:
-    with open('./config_files/config_UW_data.yml', 'r') as file:
+    with open('../config_files/config_UW_data.yml', 'r') as file:
         config = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
@@ -98,7 +98,7 @@ class gcn_reg(nn.Module):
         x = self.adaptpool(self.GCN(x))
         x_reg, _ = self.LSTM1(torch.relu(self.ln2(x)))
         regression_output = self.l_regression(x_reg)
-        return regression_output, 0  # , regression_output
+        return 0, regression_output  # , regression_output
 
 
 class gcnEdtcn_class(nn.Module):

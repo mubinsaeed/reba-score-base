@@ -9,7 +9,7 @@ import math
 from config_files.config_UW import *
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
-seed = 1
+seed = 0
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
@@ -59,19 +59,19 @@ def train(generator_train, generator_val, model_, mt_losses, optimizer_, lr_):
             optimizer_.zero_grad()
             loss.backward()
             optimizer_.step()
-            for p in mt_losses.eta:
-                p.data.clamp_(0.5)
+            #for p in mt_losses.eta:
+                #p.data.clamp_(0.5)
             losses = losses + loss.cpu().data.numpy()
             losses_class = losses_class + loss_class.cpu().data.numpy()
             losses_reg = losses_reg + loss_reg.cpu().data.numpy()
         vallosses, vallosses_reg, vallosses_class = val(generator_val, model_, mt_losses)
-        print(epoch, ': Train: ', round(losses, 4), ' Val: ', round(vallosses, 4), ' Train_class: ',
-              round(losses_class, 4), ' Train_reg: ', round(losses_reg, 4), ' Val_class: ', round(vallosses_class, 4),
-              ' Val_reg: ', round(vallosses_reg, 4))
+        print(epoch, ': Train: ', np.round(losses, 4), ' Val: ', np.round(vallosses, 4), ' Train_class: ',
+              np.round(losses_class, 4), ' Train_reg: ', np.round(losses_reg, 4), ' Val_class: ', np.round(vallosses_class, 4),
+              ' Val_reg: ', np.round(vallosses_reg, 4))
         output_file.write(
             'EPOCH: %02d\t TrainLoss: %0.04f \t ValLoss: %0.04f \t Train_class: %0.04f \t Train_reg: %0.04f \t Val_class: %0.04f \t Val_reg: %0.04f\n' % (
-                epoch, round(losses, 4), round(vallosses, 4), round(losses_class, 4), round(losses_reg, 4),
-                round(vallosses_class, 4), round(vallosses_reg, 4)))
+                epoch, np.round(losses, 4), np.round(vallosses, 4), np.round(losses_class, 4), np.round(losses_reg, 4),
+                np.round(vallosses_class, 4), np.round(vallosses_reg, 4)))
 
         output_file.close()
         # early_stopping needs the validation loss to check if it has decresed,
@@ -143,7 +143,7 @@ for lr in config_exp['LR']:
     model.apply(weightinit)
 
     if config_exp['loss_reg'] == 'MSE' or config_exp['loss_reg'] == 'L1' or config_exp['loss_reg'] == 'SmoothL1':
-        MT_losses = MultiTask2Loss(model=model, loss_fn=criterion_class + criterion_reg).cuda()
+        MT_losses = RegLoss(model=model, loss_fn=criterion_class + criterion_reg).cuda()
     elif config_exp['loss_reg'] == 'MSEL1' or config_exp['loss_reg'] == 'MSESmoothL1':
         MT_losses = MultiTask3Loss(model=model, loss_fn=criterion_class + criterion_reg).cuda()
 

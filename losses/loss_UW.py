@@ -3,7 +3,7 @@ import torch.nn as nn
 import yaml
 
 try:
-    with open('./config_files/config_UW_exp.yml', 'r') as file:
+    with open('../config_files/config_UW_exp.yml', 'r') as file:
         config = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
@@ -16,8 +16,10 @@ class RegLoss(nn.Module):
         self.loss_fn = loss_fn
 
     def forward(self, input, targets):
-        reba_pre, _ = self.model(input)
+        _, reba_pre = self.model(input)
         loss_reg = self.loss_fn[0](reba_pre[targets[1] != -1].view(-1),
+                                                 targets[1][targets[1] != -1].view(-1))
+        losss_reg = self.loss_fn[1](reba_pre[targets[1] != -1].view(-1),
                                                  targets[1][targets[1] != -1].view(-1))
         # total_loss = loss_class + loss_reg
         return torch.tensor([0]), loss_reg, loss_reg #loss_reg, total_loss.sum()
@@ -46,12 +48,12 @@ class MultiTask2Loss(nn.Module):
 
     def forward(self, input, targets):
         score, reba_pre = self.model(input)
-        loss_class = self.eta[0] * self.loss_fn[0](score[targets[0] != -1].view(-1, num_class),
-                                                   targets[0][targets[0] != -1].view(-1))
+        #loss_class = self.eta[0] * self.loss_fn[0](score[targets[0] != -1].view(-1, num_class),
+                                                #   targets[0][targets[0] != -1].view(-1))
         loss_reg = self.eta[1] * self.loss_fn[1](reba_pre[targets[1] != -1].view(-1),
                                                  targets[1][targets[1] != -1].view(-1))
-        total_loss = loss_class + loss_reg
-        return loss_class, loss_reg, total_loss.sum()
+        #total_loss = loss_class + loss_reg
+        return loss_reg, loss_reg, loss_reg
 
 class MultiTask3Loss(nn.Module):
     def __init__(self, model, loss_fn):
