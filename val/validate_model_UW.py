@@ -103,7 +103,7 @@ def val(generator, model, MT_losses):
         for local_im, local_labels, reba_gt in generator:
             local_im, local_labels, reba_gt = local_im.float().cuda(), local_labels.long().cuda(), reba_gt.float().cuda()
 
-            loss_class, loss_reg, loss = MT_losses(local_im, [local_labels, reba_gt])
+            loss_class, loss_reg, loss = MT_losses(local_im, [reba_gt])
             losses = losses + loss.cpu().data.numpy()
             losses_reg = losses_reg + loss_reg.cpu().data.numpy()
             losses_class = losses_class + loss_class.cpu().data.numpy()
