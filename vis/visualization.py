@@ -10,12 +10,12 @@ from vis.plotCM import *
 from util.utils import *
 import yaml
 try:
-    with open('./config_files/config_UW_data.yml', 'r') as file:
+    with open('../config_files/config_UW_data.yml', 'r') as file:
         config_data = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
 try:
-    with open('./config_files/config_UW_class.yml', 'r') as file:
+    with open('../config_files/config_UW_class.yml', 'r') as file:
         config_exp = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
@@ -36,7 +36,7 @@ classes = [
 
 # base
 EXP_name = 'base'
-CHECKPOINT_PATH =  './outputs/UW/checkpoints/0.001_SmoothREBA_gcnEdtcnREBA_tanh_MSEL1_CrossEntropy.pt'
+CHECKPOINT_PATH =  '../0.0005_MTL-Emb_output.pt'
 checkpoint = torch.load(CHECKPOINT_PATH)
 n_nodes = [50, 50, 50, 50]
 model = gcnEdtcnREBA_tanh(hidden=n_nodes, kernel_size=4).cuda()

@@ -11,12 +11,12 @@ from termcolor import colored
 import yaml
 
 try:
-    with open('./config_files/config_UW_data.yml', 'r') as file:
+    with open('../config_files/config_UW_data.yml', 'r') as file:
         config_data = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
 try:
-    with open('./config_files/config_UW_exp.yml', 'r') as file:
+    with open('../config_files/config_UW_exp.yml', 'r') as file:
         config_exp = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
