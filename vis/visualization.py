@@ -15,7 +15,7 @@ try:
 except Exception as e:
     print('Error reading the config_data file')
 try:
-    with open('../config_files/config_UW_class.yml', 'r') as file:
+    with open('../config_files/config_UW_exp.yml', 'r') as file:
         config_exp = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')
@@ -39,7 +39,7 @@ EXP_name = 'base'
 CHECKPOINT_PATH =  '../0.0005_MTL-Emb_output.pt'
 checkpoint = torch.load(CHECKPOINT_PATH)
 n_nodes = [50, 50, 50, 50]
-model = gcnEdtcnREBA_tanh(hidden=n_nodes, kernel_size=4).cuda()
+model = gcnEdtcnREBA_emb(hidden=n_nodes, kernel_size=4).cuda()
 model.load_state_dict(checkpoint)
 
 listpred_for_CM, labellist, flat_listpred_for_CM, label_gt, label_pred, reba_gt, reba_pred, result, coef_list, EDIT, OVERLAP_F1, MSE = eval(model)
