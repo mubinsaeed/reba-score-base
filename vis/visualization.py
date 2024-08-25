@@ -42,12 +42,51 @@ n_nodes = [50, 50, 50, 50]
 model = gcnEdtcnREBA_emb(hidden=n_nodes, kernel_size=4).cuda()
 model.load_state_dict(checkpoint)
 
+
+def plot_multiple_predictions_vs_gt(gt_lists, pred_lists):
+    num_plots = len(gt_lists)
+    fig, axs = plt.subplots(num_plots, 1, figsize=(10, 5 * num_plots), sharex=True, sharey=True)
+    if num_plots == 1:
+        axs = [axs]  # Ensure axs is iterable if there's only one subplot
+
+    for i in range(num_plots):
+        gt = gt_lists[i]
+        pred = pred_lists[i]
+
+        # Check if the input lists are of the same length
+        if len(gt) != len(pred):
+            raise ValueError(f"Ground truth and prediction lists at index {i} must have the same length")
+
+        # Scatter plot for ground truth
+        axs[i].scatter(range(len(gt)), gt, color='blue', label='Ground Truth', marker='o')
+
+        # Scatter plot for predictions
+        axs[i].scatter(range(len(pred)), pred, color='red', label='Predictions', marker='x')
+
+        # Add dotted lines between each pair of ground truth and prediction
+        for j in range(len(gt)):
+            axs[i].plot([j, j], [gt[j], pred[j]], 'k--', color='gray', linewidth=0.5)  # Dotted line
+
+        # Add labels and legend
+        axs[i].set_xlabel('Index')
+        axs[i].set_ylabel('Value')
+        axs[i].set_title(f'Subplot {i + 1}: Ground Truth vs Predictions')
+        axs[i].legend()
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Show the plot
+    plt.show()
+
 listpred_for_CM, labellist, flat_listpred_for_CM, label_gt, label_pred, reba_gt, reba_pred, result, coef_list, EDIT, OVERLAP_F1, MSE = eval(model)
 
 # Results
 res = []
 for k in result.keys():
     res.append(100*result[k])
+
+plot_multiple_predictions_vs_gt(reba_gt,reba_pred)
 
 print('MSE: \n', MSE)
 print('mean(MSE): \n', np.mean(MSE))
