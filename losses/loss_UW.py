@@ -3,7 +3,7 @@ import torch.nn as nn
 import yaml
 
 try:
-    with open('./config_files/config_UW_exp.yml', 'r') as file:
+    with open('../config_files/config_UW_exp.yml', 'r') as file:
         config = yaml.safe_load(file)
 except Exception as e:
     print('Error reading the config_data file')

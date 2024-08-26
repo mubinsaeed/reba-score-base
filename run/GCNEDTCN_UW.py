@@ -7,7 +7,7 @@ from val.validate_model_UW import val, EarlyStopping
 from vis.plotCM import *
 import math
 from config_files.config_UW import *
-
+from tensorboardX import SummaryWriter
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 seed = 1
 torch.manual_seed(seed)
@@ -32,6 +32,7 @@ val_split = np.load(base_data_dir + config_data['val_dir'])
 
 def train(generator_train, generator_val, model_, mt_losses, optimizer_, lr_):
     global vallepochloss
+    writer = SummaryWriter(f"testing/lr {lr_}/data")
     output_file = open(config_exp['log_dir'] + config_exp['output_name'], 'a')
     output_file.write('\n------------------------------------------------------------------------\n')
     output_file.write(what_is_different_in_this_code)
@@ -52,7 +53,9 @@ def train(generator_train, generator_val, model_, mt_losses, optimizer_, lr_):
         losses = 0.0
         losses_class = 0.0
         losses_reg = 0.0
+        stepp = 0
         for local_im, local_labels, reba_gt in generator_train:
+            stepp+=1
             local_im, local_labels, reba_gt = local_im.float().cuda(), local_labels.long().cuda(), reba_gt.float().cuda()
 
             loss_class, loss_reg, loss = mt_losses(local_im, [local_labels, reba_gt])
@@ -65,13 +68,17 @@ def train(generator_train, generator_val, model_, mt_losses, optimizer_, lr_):
             losses_class = losses_class + loss_class.cpu().data.numpy()
             losses_reg = losses_reg + loss_reg.cpu().data.numpy()
         vallosses, vallosses_reg, vallosses_class = val(generator_val, model_, mt_losses)
-        print(epoch, ': Train: ', round(losses, 4), ' Val: ', round(vallosses, 4), ' Train_class: ',
-              round(losses_class, 4), ' Train_reg: ', round(losses_reg, 4), ' Val_class: ', round(vallosses_class, 4),
-              ' Val_reg: ', round(vallosses_reg, 4))
+
+        print(epoch, ': Train: ', np.round(losses/stepp, 4), ' Val: ', np.round(vallosses, 4), ' Train_class: ',
+              np.round(losses_class/stepp, 4), ' Train_reg: ', np.round(losses_reg/stepp, 4), ' Val_class: ', np.round(vallosses_class, 4),
+              ' Val_reg: ', np.round(vallosses_reg, 4))
+        writer.add_scalar('Training/Epoch Loss Reg', losses_reg.item(), global_step=epoch)
+        writer.add_scalar('Validation/Epoch Loss Reg', vallosses_reg.item(), global_step=epoch)
+        writer.flush()
         output_file.write(
             'EPOCH: %02d\t TrainLoss: %0.04f \t ValLoss: %0.04f \t Train_class: %0.04f \t Train_reg: %0.04f \t Val_class: %0.04f \t Val_reg: %0.04f\n' % (
-                epoch, round(losses, 4), round(vallosses, 4), round(losses_class, 4), round(losses_reg, 4),
-                round(vallosses_class, 4), round(vallosses_reg, 4)))
+                epoch, np.round(losses/stepp, 4), np.round(vallosses, 4), np.round(losses_class/stepp, 4), np.round(losses_reg/stepp, 4),
+                np.round(vallosses_class, 4), np.round(vallosses_reg, 4)))
 
         output_file.close()
         # early_stopping needs the validation loss to check if it has decresed,

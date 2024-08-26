@@ -146,17 +146,19 @@ print('std_AP_Score: ' + str(round(np.std(res), 4)))
 # conf_mat = confusion_matrix(label_gt, flat_listpred_for_CM)
 # np.save('CM_UW_'+EXP_name, conf_mat)
 # plot_confusion_matrix(conf_mat, classes,'CM_UW_'+EXP_name)
-# plot_reba(reba_pred, reba_gt, labellist, classes,data='UW', saving_dir='UW_REBA_'+EXP_name)
+plot_reba(reba_pred, reba_gt, labellist, classes,data='UW', saving_dir='UW_REBA_'+EXP_name)
 
 # %% Compare Confusion Matrices
-CM_dir_base = './CM_UW_base.npy'
-CM_dir_emb = './CM_UW_emb.npy'
 
-conf_mat_base = np.load(CM_dir_base)
-CM_base = plot_confusion_matrix(conf_mat_base, classes, 'UW_conf_mat_base'+'.eps') #'UW_conf_mat_base'+'.png'
+#ToDo
+#CM_dir_base = './CM_UW_base.npy'
+#CM_dir_emb = './CM_UW_emb.npy'
 
-conf_mat_emb = np.load(CM_dir_emb)
-CM_emb = plot_confusion_matrix(conf_mat_emb, classes, 'UW_conf_mat_emb'+'.eps')#'UW_conf_mat_emb'+'.png'
+#conf_mat_base = np.load(CM_dir_base)
+#CM_base = plot_confusion_matrix(conf_mat_base, classes, 'UW_conf_mat_base'+'.eps') #'UW_conf_mat_base'+'.png'
 
-CM = CM_base - CM_emb
-plot_confusion_matrix(CM, classes, 'UW_diff'+'.eps', normalize=False,cmap=plt.cm.PiYG)
+#conf_mat_emb = np.load(CM_dir_emb)
+#CM_emb = plot_confusion_matrix(conf_mat_emb, classes, 'UW_conf_mat_emb'+'.eps')#'UW_conf_mat_emb'+'.png'
+
+#CM = CM_base - CM_emb
+#plot_confusion_matrix(CM, classes, 'UW_diff'+'.eps', normalize=False,cmap=plt.cm.PiYG)
