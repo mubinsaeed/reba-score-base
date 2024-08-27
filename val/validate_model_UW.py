@@ -103,7 +103,7 @@ def val(generator, model, MT_losses):
         for local_im, local_labels, reba_gt in generator:
             local_im, local_labels, reba_gt = local_im.float().cuda(), local_labels.long().cuda(), reba_gt.float().cuda()
 
-            loss_class, loss_reg, loss = MT_losses(local_im, [local_labels, reba_gt])
+            loss_class, loss_reg, loss = MT_losses(local_im, [reba_gt])
             losses = losses + loss.cpu().data.numpy()
             losses_reg = losses_reg + loss_reg.cpu().data.numpy()
             losses_class = losses_class + loss_class.cpu().data.numpy()
@@ -115,12 +115,12 @@ def bestval(generator, max_len, model, n_class):
     model.eval()
     losses = 0.0
 
-    labellist = []
-    predlist = []
-    EDIT = []
-    OVERLAP_F1 = []
+   # labellist = []
+  #  predlist = []
+   # EDIT = []
+   # OVERLAP_F1 = []
     MSE = []
-    listpred_for_CM = []
+ #   listpred_for_CM = []
     spearmanr_list = []
 
     with torch.no_grad():
@@ -131,32 +131,32 @@ def bestval(generator, max_len, model, n_class):
             reba_gt = np.loadtxt(reba_scores_loc + seq + '.txt')
             threepose, _, _, mask = mask_data([threepose], [labels_gt], [reba_gt], max_len, mask_value=-1)
             x = Variable(torch.Tensor(threepose)).float().cuda()
-            score, reba_pre = model(x)
-            score = unmask(score.cpu().numpy(), mask)
+            reba_pre,_ = model(x)
+            #score = unmask(score.cpu().numpy(), mask)
             reba_pre = unmask(reba_pre.cpu().numpy(), mask)
-            scorelist = [score]
+            #scorelist = [score]
             rebalist = [reba_pre]
 
-            ll = np.asarray(labels_gt)
-            lp = np.asarray([item for sublist in scorelist for item in sublist])
-            llp = np.argmax(lp.squeeze(), axis=1)
-            EDIT.append(edit_score(llp, ll))
-            OVERLAP_F1.append(overlap_f1(llp, ll, n_classes=n_class))
+           # ll = np.asarray(labels_gt)
+           # lp = np.asarray([item for sublist in scorelist for item in sublist])
+           # llp = np.argmax(lp.squeeze(), axis=1)
+           # EDIT.append(edit_score(llp, ll))
+            #OVERLAP_F1.append(overlap_f1(llp, ll, n_classes=n_class))
             reba_pre = np.asarray([item for sublist in rebalist for item in sublist]).squeeze()
             MSE.append(((reba_pre - reba_gt) ** 2).mean(axis=0))
             coef, p = spearmanr(reba_pre, reba_gt)
             spearmanr_list.append([coef, p])
-            labellist.append(ll)
-            predlist.append(lp.squeeze())
-            listpred_for_CM.append(llp)
-        flat_listlabel = [item for sublist in labellist for item in sublist]
-        flat_listpred = [item for sublist in predlist for item in sublist]
+           # labellist.append(ll)
+          #  predlist.append(lp.squeeze())
+          #  listpred_for_CM.append(llp)
+       # flat_listlabel = [item for sublist in labellist for item in sublist]
+       # flat_listpred = [item for sublist in predlist for item in sublist]
         # flat_listpred_for_CM = [item for sublist in listpred_for_CM for item in sublist]
-        result = compute_class_ap(np.asarray(flat_listpred), np.asarray(flat_listlabel))
-    conf_mat, class_accuracy = compute_confusion_matrix(n_class, generator, model)
+        #result = compute_class_ap(np.asarray(flat_listpred), np.asarray(flat_listlabel))
+   # conf_mat, class_accuracy = compute_confusion_matrix(n_class, generator, model)
     # conf_mat2 = confusion_matrix(flat_listlabel, flat_listpred_for_CM)
     model.train()
-    return result, EDIT, OVERLAP_F1, MSE, conf_mat, class_accuracy, spearmanr_list
+    return  MSE, spearmanr_list
 
 
 def check(tensor_):
@@ -169,53 +169,54 @@ def check(tensor_):
 
 
 def show_results(lr, epoch, vallosses, OUTPUTFILE, CM_dir, generator_val, max_len, model, mt_loss, n_classes):
-    result, ed, f1, MSE, conf_mat, class_accuracy, spearmanr_list = bestval(generator_val, max_len, model, n_classes)
-    print(colored('meanEdit: ' + str(round(np.mean(ed), 4)), 'cyan'))
-    print(colored('meanF1: ' + str(round(np.mean(f1), 4)), 'cyan'))
+    #result, ed, f1, MSE, spearmanr_list = bestval(generator_val, max_len, model, n_classes)
+    MSE, spearmanr_list = bestval(generator_val, max_len, model, n_classes)
+   # print(colored('meanEdit: ' + str(round(np.mean(ed), 4)), 'cyan'))
+   # print(colored('meanF1: ' + str(round(np.mean(f1), 4)), 'cyan'))
     print(colored('meanMSE: ' + str(round(np.mean(MSE), 4)), 'cyan'))
-    print(colored('loss weights: ' + str(mt_loss.eta.data), 'cyan'))
+   # print(colored('loss weights: ' + str(mt_loss.eta.data), 'cyan'))
     # print('class_accuracy: ', class_accuracy)
     # print(conf_mat)
     # plt.figure(figsize=(NUMBER_OF_CLASSES, NUMBER_OF_CLASSES))
     # plot_confusion_matrix(conf_mat, classes, CM_dir+'confusion'+OUTPUTFILE[:-4])
     # plt.savefig(CM_dir + 'confusion' + OUTPUTFILE[:-4])
     # print(class_accuracy)
-    np.save(CM_dir + str(lr) + '_confusion_' + OUTPUTFILE[:-4], conf_mat)
+  #  np.save(CM_dir + str(lr) + '_confusion_' + OUTPUTFILE[:-4], conf_mat)
     meanresult = []
     meanresult.append(['lr', lr])
     meanresult.append(['epoch', epoch])
     meanresult.append(['vallosses', vallosses])
-    for k in result.keys():
-        meanresult.append(result[k])
+    #for k in result.keys():
+   #     meanresult.append(result[k])
     # meanresult.append(['meanresult',np.mean(meanresult[3:])])
     # meanresult.append(['meanEdit',np.mean(ed)])
     # meanresult.append(['meanF1',np.mean(f1)])
     output_file = open(config_exp['log_dir'] + 'maps_' + OUTPUTFILE, 'a')
     output_file.write('\n------------------\n')
     output_file.write('Saved Epoch: ' + str(epoch) + ' Valloss: ' + str(round(vallosses, 4)) + '\n')
-    output_file.write('mean_AP_Score: ' + str(round(np.mean(meanresult[3:]), 4)) + '\n')
-    output_file.write('std_AP_Score: ' + str(round(np.std(meanresult[3:]), 4)) + '\n')
-    output_file.write('meanEdit: ' + str(round(np.mean(ed), 4)) + '\n')
-    output_file.write('stdEdit: ' + str(round(np.std(ed), 4)) + '\n')
-    output_file.write('meanF1: ' + str(round(np.mean(f1), 4)) + '\n')
-    output_file.write('stdF1: ' + str(round(np.std(f1), 4)) + '\n')
+  #  output_file.write('mean_AP_Score: ' + str(round(np.mean(meanresult[3:]), 4)) + '\n')
+  #  output_file.write('std_AP_Score: ' + str(round(np.std(meanresult[3:]), 4)) + '\n')
+  #  output_file.write('meanEdit: ' + str(round(np.mean(ed), 4)) + '\n')
+  #  output_file.write('stdEdit: ' + str(round(np.std(ed), 4)) + '\n')
+ #   output_file.write('meanF1: ' + str(round(np.mean(f1), 4)) + '\n')
+ #   output_file.write('stdF1: ' + str(round(np.std(f1), 4)) + '\n')
     output_file.write('meanMSE: ' + str(round(np.mean(MSE), 4)) + '\n')
     output_file.write('stdMSE: ' + str(round(np.std(MSE), 4)) + '\n')
     output_file.write('spearmanr (coef, p): ' + str(spearmanr_list) + '\n')
-    output_file.write('loss weights: ' + str(mt_loss.eta.data) + '\n')
+ #   output_file.write('loss weights: ' + str(mt_loss.eta.data) + '\n')
     output_file.write('class_accuracy: ')
-    for i, item in enumerate(list(class_accuracy)):
+ #   for i, item in enumerate(list(class_accuracy)):
         # output_file.writelines(str(i) + ": ")
-        output_file.writelines(str(round(item, 4)) + " ")
+      #  output_file.writelines(str(round(item, 4)) + " ")
     output_file.write('\n')
-    output_file.write('class_AP_Score: ')
-    for i, item in enumerate(meanresult[3:]):
+    #output_file.write('class_AP_Score: ')
+    #for i, item in enumerate(meanresult[3:]):
         # output_file.writelines(str(i) + ": ")
-        output_file.writelines(str(round(item, 4)) + " ")
-    output_file.write('\n')
+     #   output_file.writelines(str(round(item, 4)) + " ")
+    #output_file.write('\n')
     # output_file.write(str(meanresult) + '\n')
     output_file.close()
-    return mt_loss.eta.data
+    return 1
 
 
 class EarlyStopping:
@@ -257,8 +258,8 @@ class EarlyStopping:
             self.counter = 0
             eta = show_results(lr, epoch, val_loss, outputfile, CM_dir, generator_val, temporal_len, model, mt_losses,
                                n_classes)
-            if check(eta) == True:
-                self.early_stop = True
+            #if check(eta) == True:
+               # self.early_stop = True
 
     def save_checkpoint(self, val_loss, model, dir_out, outputfile):
         '''Saves model when validation loss decrease.'''

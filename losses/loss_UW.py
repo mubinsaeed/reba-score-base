@@ -17,10 +17,10 @@ class RegLoss(nn.Module):
 
     def forward(self, input, targets):
         reba_pre, _ = self.model(input)
-        loss_reg = self.loss_fn[0](reba_pre[targets[1] != -1].view(-1),
-                                                 targets[1][targets[1] != -1].view(-1))
-        # total_loss = loss_class + loss_reg
-        return torch.tensor([0]), loss_reg, loss_reg #loss_reg, total_loss.sum()
+        loss_reg = self.loss_fn[0](reba_pre[targets[0] != -1].view(-1),
+                                                 targets[0][targets[0] != -1].view(-1))
+        total_loss = loss_reg
+        return torch.tensor([0]), loss_reg, total_loss.sum() #loss_reg, total_loss.sum()
 
 
 class CrossEntLoss(nn.Module):

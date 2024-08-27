@@ -58,12 +58,12 @@ def train(generator_train, generator_val, model_, mt_losses, optimizer_, lr_):
             stepp+=1
             local_im, local_labels, reba_gt = local_im.float().cuda(), local_labels.long().cuda(), reba_gt.float().cuda()
 
-            loss_class, loss_reg, loss = mt_losses(local_im, [local_labels, reba_gt])
+            loss_class, loss_reg, loss = mt_losses(local_im, [reba_gt])
             optimizer_.zero_grad()
             loss.backward()
             optimizer_.step()
-            for p in mt_losses.eta:
-                p.data.clamp_(0.5)
+           # for p in mt_losses.eta:
+             #   p.data.clamp_(0.5)
             losses = losses + loss.cpu().data.numpy()
             losses_class = losses_class + loss_class.cpu().data.numpy()
             losses_reg = losses_reg + loss_reg.cpu().data.numpy()
@@ -150,7 +150,7 @@ for lr in config_exp['LR']:
     model.apply(weightinit)
 
     if config_exp['loss_reg'] == 'MSE' or config_exp['loss_reg'] == 'L1' or config_exp['loss_reg'] == 'SmoothL1':
-        MT_losses = MultiTask2Loss(model=model, loss_fn=criterion_class + criterion_reg).cuda()
+        MT_losses = RegLoss(model=model, loss_fn=criterion_reg).cuda()
     elif config_exp['loss_reg'] == 'MSEL1' or config_exp['loss_reg'] == 'MSESmoothL1':
         MT_losses = MultiTask3Loss(model=model, loss_fn=criterion_class + criterion_reg).cuda()
 
